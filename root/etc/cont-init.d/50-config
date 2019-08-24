@@ -244,8 +244,8 @@ if [ ! -f "/config/keys/letsencrypt/fullchain.pem" ]; then
   openssl pkcs12 -export -out privkey.pfx -inkey privkey.pem -in cert.pem -certfile chain.pem -passout pass:
   sleep 1
   cat {privkey,fullchain}.pem > priv-fullchain-bundle.pem
-  cat /config/etc/letsencrypt/live/"${URL}"*/fullchain.pem > /config/etc/nginx/certs/"${URL}".crt
-  cat /config/etc/letsencrypt/live/"${URL}"*/privkey.pem > /config/etc/nginx/certs/"${URL}".key
+  cat /config/etc/letsencrypt/live/"${URL}"*/fullchain.pem > /config/certs/"${URL}".crt
+  cat /config/etc/letsencrypt/live/"${URL}"*/privkey.pem > /config/certs/"${URL}".key
   echo "New certificate generated; starting nginx"
 else
   echo "Certificate exists; parameters unchanged; starting nginx"
