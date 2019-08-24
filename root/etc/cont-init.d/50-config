@@ -229,8 +229,8 @@ if [ ! -f "/config/keys/letsencrypt/fullchain.pem" ]; then
   echo "Generating new certificate"
  # shellcheck disable=SC2086
  certbot certonly --renew-by-default --server $ACMESERVER $PREFCHAL --rsa-key-size 4096 $EMAILPARAM --agree-tos $URL_REAL
- cp /config/etc/letsencrypt/live/"${URL}"*/fullchain.pem > /config/certs/"${URL}".crt
- cp /config/etc/letsencrypt/live/"${URL}"*/privkey.pem > /config/certs/"${URL}".key
+ cp /config/etc/letsencrypt/live/"${URL}"*/fullchain.pem /config/certs/"${URL}".crt
+ cp /config/etc/letsencrypt/live/"${URL}"*/privkey.pem /config/certs/"${URL}".key
  echo "Copied Cert for external use"
   if [ -d /config/keys/letsencrypt ]; then
     cd /config/keys/letsencrypt || exit
@@ -247,10 +247,6 @@ if [ ! -f "/config/keys/letsencrypt/fullchain.pem" ]; then
   openssl pkcs12 -export -out privkey.pfx -inkey privkey.pem -in cert.pem -certfile chain.pem -passout pass:
   sleep 1
   cat {privkey,fullchain}.pem > priv-fullchain-bundle.pem
-  cp /config/etc/letsencrypt/live/"${URL}"*/fullchain.pem > /config/certs/"${URL}".crt
-  echo "Copied Cert"
-  cp /config/etc/letsencrypt/live/"${URL}"*/privkey.pem > /config/certs/"${URL}".key
-  echo "Copied Private Key"
   echo "New certificate generated; starting nginx"
 else
   echo "Certificate exists; parameters unchanged; starting nginx"
