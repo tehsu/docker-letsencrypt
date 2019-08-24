@@ -229,6 +229,9 @@ if [ ! -f "/config/keys/letsencrypt/fullchain.pem" ]; then
   echo "Generating new certificate"
  # shellcheck disable=SC2086
  certbot certonly --renew-by-default --server $ACMESERVER $PREFCHAL --rsa-key-size 4096 $EMAILPARAM --agree-tos $URL_REAL
+ cp /config/etc/letsencrypt/live/"${URL}"*/fullchain.pem > /config/certs/"${URL}".crt
+ cp /config/etc/letsencrypt/live/"${URL}"*/privkey.pem > /config/certs/"${URL}".key
+ echo "Copied Cert for external use"
   if [ -d /config/keys/letsencrypt ]; then
     cd /config/keys/letsencrypt || exit
   else
