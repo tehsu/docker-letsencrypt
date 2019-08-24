@@ -245,8 +245,8 @@ if [ ! -f "/config/keys/letsencrypt/fullchain.pem" ]; then
   sleep 1
   cat {privkey,fullchain}.pem > priv-fullchain-bundle.pem
   echo "New certificate generated; starting nginx"
-  cp fullchain.pem config/etc/nginx/certs/"${URL}".crt
-  cp privkey.pem /config/etc/nginx/certs/"${URL}".key
+  cat fullchain.pem > /config/etc/nginx/certs/"${URL}".crt
+  cat privkey.pem > /config/etc/nginx/certs/"${URL}".key
 else
   echo "Certificate exists; parameters unchanged; starting nginx"
 fi
