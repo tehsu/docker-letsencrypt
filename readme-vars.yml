@@ -19,8 +19,8 @@ available_architectures:
 # development version
 development_versions: false
 development_versions_items:
-  - { tag: "latest", desc: "Stable Ombi releases" }
-  - { tag: "development", desc: "Releases from the `develop` branch of Ombi" }
+  - { tag: "latest", desc: "Stable releases" }
+  - { tag: "development", desc: "Releases from the `develop` branch" }
 
 
 # container parameters
@@ -34,10 +34,10 @@ param_env_vars:
   - { env_var: "TZ", env_value: "Europe/London", desc: "Specify a timezone to use EG Europe/London." }
   - { env_var: "URL", env_value: "yourdomain.url", desc: "Top url you have control over (`customdomain.com` if you own it, or `customsubdomain.ddnsprovider.com` if dynamic dns)." }
   - { env_var: "SUBDOMAINS", env_value: "www,", desc: "Subdomains you'd like the cert to cover (comma separated, no spaces) ie. `www,ftp,cloud`. For a wildcard cert, set this _exactly_ to `wildcard` (wildcard cert is available via `dns` and `duckdns` validation only)" }
-  - { env_var: "VALIDATION", env_value: "http", desc: "Letsencrypt validation method to use, options are `http`, `tls-sni`, `dns` or `duckdns` (`dns` method also requires `DNSPLUGIN` variable set) (`duckdns` method requires `DUCKDNSTOKEN` variable set, and the `SUBDOMAINS` variable must be either empty or set to `wildcard`)." }
+  - { env_var: "VALIDATION", env_value: "http", desc: "Letsencrypt validation method to use, options are `http`, `dns` or `duckdns` (`dns` method also requires `DNSPLUGIN` variable set) (`duckdns` method requires `DUCKDNSTOKEN` variable set, and the `SUBDOMAINS` variable must be either empty or set to `wildcard`)." }
 param_usage_include_vols: true
 param_volumes:
-  - { vol_path: "/config", vol_host_path: "</path/to/appdata/config>", desc: "All the config files including the webroot reside here." }
+  - { vol_path: "/config", vol_host_path: "/path/to/appdata/config", desc: "All the config files including the webroot reside here." }
 param_usage_include_ports: true
 param_ports:
   - { external_port: "443", internal_port: "443", port_desc: "Https port" }
@@ -51,19 +51,19 @@ cap_add_param_vars:
 # optional container parameters
 opt_param_usage_include_env: true
 opt_param_env_vars:
-  - { env_var: "DNSPLUGIN", env_value: "cloudflare", desc: "Required if `VALIDATION` is set to `dns`. Options are `cloudflare`, `cloudxns`, `digitalocean`, `dnsimple`, `dnsmadeeasy`, `google`, `inwx`, `linode`, `luadns`, `nsone`, `ovh`, `rfc2136`, `route53` and `transip`. Also need to enter the credentials into the corresponding ini (or json for some plugins) file under `/config/dns-conf`." }
-  - { env_var: "DUCKDNSTOKEN", env_value: "<token>", desc: "Required if `VALIDATION` is set to `duckdns`. Retrieve your token from https://www.duckdns.org" }
-  - { env_var: "EMAIL", env_value: "<e-mail>", desc: "Optional e-mail address used for cert expiration notifications." }
-  - { env_var: "DHLEVEL", env_value: "2048", desc: "Dhparams bit value (default=2048, can be set to `1024` or `4096`)." }
+  - { env_var: "DNSPLUGIN", env_value: "cloudflare", desc: "Required if `VALIDATION` is set to `dns`. Options are `aliyun`, `cloudflare`, `cloudxns`, `cpanel`, `digitalocean`, `dnsimple`, `dnsmadeeasy`, `domeneshop`, `gandi`, `google`, `inwx`, `linode`, `luadns`, `nsone`, `ovh`, `rfc2136`, `route53` and `transip`. Also need to enter the credentials into the corresponding ini (or json for some plugins) file under `/config/dns-conf`." }
+  - { env_var: "PROPAGATION", env_value: "", desc: "Optionally override (in seconds) the default propagation time for the dns plugins." }
+  - { env_var: "DUCKDNSTOKEN", env_value: "", desc: "Required if `VALIDATION` is set to `duckdns`. Retrieve your token from https://www.duckdns.org" }
+  - { env_var: "EMAIL", env_value: "", desc: "Optional e-mail address used for cert expiration notifications." }
   - { env_var: "ONLY_SUBDOMAINS", env_value: "false", desc: "If you wish to get certs only for certain subdomains, but not the main domain (main domain may be hosted on another machine and cannot be validated), set this to `true`" }
-  - { env_var: "EXTRA_DOMAINS", env_value: "<extradomains>", desc: "Additional fully qualified domain names (comma separated, no spaces) ie. `extradomain.com,subdomain.anotherdomain.org`" }
+  - { env_var: "EXTRA_DOMAINS", env_value: "", desc: "Additional fully qualified domain names (comma separated, no spaces) ie. `extradomain.com,subdomain.anotherdomain.org,*.anotherdomain.org`" }
   - { env_var: "STAGING", env_value: "false", desc: "Set to `true` to retrieve certs in staging mode. Rate limits will be much higher, but the resulting cert will not pass the browser's security test. Only to be used for testing purposes." }
 opt_param_usage_include_vols: false
 opt_param_volumes:
-  - { vol_path: "/config", vol_host_path: "</path/to/appdata/config>", desc: "Configuration files." }
+  - { vol_path: "/config", vol_host_path: "/path/to/appdata/config", desc: "Configuration files." }
 opt_param_usage_include_ports: true
 opt_param_ports:
-  - { external_port: "80", internal_port: "80", port_desc: "Http port (required for http validation only)" }
+  - { external_port: "80", internal_port: "80", port_desc: "Http port (required for http validation and http -> https redirect)" }
 opt_param_device_map: false
 opt_param_devices:
   - { device_path: "/dev/dri", device_host_path: "/dev/dri", desc: "For hardware transcoding" }
@@ -80,7 +80,6 @@ app_setup_block: |
   ### Validation and initial setup
   * Before running this container, make sure that the url and subdomains are properly forwarded to this container's host, and that port 443 (and/or 80) is not being used by another service on the host (NAS gui, another webserver, etc.).
   * For `http` validation, port 80 on the internet side of the router should be forwarded to this container's port 80
-  * For `tls-sni` validation, port 443 on the internet side of the router should be forwarded to this container's port 443
   * For `dns` validation, make sure to enter your credentials into the corresponding ini (or json for some plugins) file under `/config/dns-conf`
     * Cloudflare provides free accounts for managing dns and is very easy to use with this image. Make sure that it is set up for "dns only" instead of "dns + proxy"
     * Google dns plugin is meant to be used with "Google Cloud DNS", a paid enterprise product, and not for "Google Domains DNS"
@@ -90,7 +89,8 @@ app_setup_block: |
   * After setup, navigate to `https://yourdomain.url` to access the default homepage (http access through port 80 is disabled by default, you can enable it by editing the default site config at `/config/nginx/site-confs/default`).
   * Certs are checked nightly and if expiration is within 30 days, renewal is attempted. If your cert is about to expire in less than 30 days, check the logs under `/config/log/letsencrypt` to see why the renewals have been failing. It is recommended to input your e-mail in docker parameters so you receive expiration notices from letsencrypt in those circumstances.
   ### Security and password protection
-  * The container detects changes to url and subdomains, revokes existing certs and generates new ones during start. It also detects changes to the DHLEVEL parameter and replaces the dhparams file.
+  * The container detects changes to url and subdomains, revokes existing certs and generates new ones during start.
+  * The container provides a pre-generated 4096-bit dhparams.pem (rotated weekly via [Jenkins job](https://ci.linuxserver.io/blue/organizations/jenkins/Xtras-Builders-Etc%2Fdhparams-uploader/activity)) for new instances, however you may generate your own by running `docker exec letsencrypt openssl dhparam -out /config/nginx/dhparams.pem 4096` WARNING: This takes a very long time
   * If you'd like to password protect your sites, you can use htpasswd. Run the following command on your host to generate the htpasswd file `docker exec -it letsencrypt htpasswd -c /config/nginx/.htpasswd <username>`
   * You can add multiple user:pass to `.htpasswd`. For the first user, use the above command, for others, use the above command without the `-c` flag, as it will force deletion of the existing `.htpasswd` and creation of a new one
   * You can also use ldap auth for security and access control. A sample, user configurable ldap.conf is provided, and it requires the separate image [linuxserver/ldap-auth](https://hub.docker.com/r/linuxserver/ldap-auth/) to communicate with an ldap server.
@@ -100,6 +100,7 @@ app_setup_block: |
   * If you wish to hide your site from search engine crawlers, you may find it useful to add this configuration line to your site config, within the server block, above the line where ssl.conf is included
   `add_header X-Robots-Tag "noindex, nofollow, nosnippet, noarchive";`
   This will *ask* Google et al not to index and list your site. Be careful with this, as you will eventually be de-listed if you leave this line in on a site you wish to be present on search engines
+  * If you wish to redirect http to https, you must expose port 80
   ### Using certs in other containers
   * This container includes auto-generated pfx and private-fullchain-bundle pem certs that are needed by other apps like Emby and Znc.
     * To use these certs in other containers, do either of the following:
@@ -119,13 +120,32 @@ app_setup_block: |
   * You can check which jails are active via `docker exec -it letsencrypt fail2ban-client status`
   * You can check the status of a specific jail via `docker exec -it letsencrypt fail2ban-client status <jail name>`
   * You can unban an IP via `docker exec -it letsencrypt fail2ban-client set <jail name> unbanip <IP>`
-  * A list of commands can be found here: https://www.fail2ban.org/wiki/index.php/Commands  
+  * A list of commands can be found here: https://www.fail2ban.org/wiki/index.php/Commands
 
 app_setup_nginx_reverse_proxy_snippet: false
 app_setup_nginx_reverse_proxy_block: ""
 
 # changelog
 changelogs:
+  - { date: "17.06.20:", desc: "Reformat ssl.conf. Pull in pre-generated dhparams.pem from DO Spaces. Deprecate `DHLEVEL` param." }
+  - { date: "01.06.20:", desc: "Rebasing to alpine 3.12, change ldap login address to `/ldaplogin` to avoid clashes (existing users need to manually update)." }
+  - { date: "31.05.20:", desc: "Tweak Authelia confs (existing users can delete `authelia-server.conf` and `authelia-location.conf`, and restart to update)." }
+  - { date: "23.05.20:", desc: "Add support for Authelia." }
+  - { date: "15.05.20:", desc: "Remove `php7-pecl-imagick` due to upstream issues. Add support for `Geoip2` auto db retrieval." }
+  - { date: "10.05.20:", desc: "Added support for fail2ban deny statements." }
+  - { date: "04.05.20:", desc: "Allow for optionally setting propagation time for dns plugins. Add repo version of `whois` to replace the built-in busybox version. Update `jail.local` to change default fail2ban ban action to more widely supported `iptables-allports`." }
+  - { date: "13.04.20:", desc: "Update cloudflare.ini with token info." }
+  - { date: "11.03.20:", desc: "Add php7-sodium." }
+  - { date: "06.03.20:", desc: "Implement cert renewal attempt during container start (only if the cert is already expired or will expire within the next 24 hours, otherwise it will be attempted at 2:08am)." }
+  - { date: "05.03.20:", desc: "Use port and proto upstream variables for ldap and default sample confs." }
+  - { date: "24.02.20:", desc: "Remove world/group read permissions in dns-conf." }
+  - { date: "23.02.20:", desc: "Add aliyun dns validation plugin." }
+  - { date: "28.01.20:", desc: "Deprecate tls-sni validation method, remove from docs." }
+  - { date: "27.01.20:", desc: "Add support for cpanel dns validation." }
+  - { date: "10.01.20:", desc: "Add support for domeneshop dns validation." }
+  - { date: "07.01.20:", desc: "Update ciphers from Mozilla ssl-config recommendations." }
+  - { date: "01.01.20:", desc: "Add support for gandi dns validation." }
+  - { date: "31.12.19:", desc: "GeoIP2 databases now require personal license keys to download. Auto download is disabled and log message is added." }
   - { date: "19.12.19:", desc: "Rebasing to alpine 3.11." }
   - { date: "19.12.19:", desc: "Increase large_client_header_buffers in nginx.conf to prevent 414 errors." }
   - { date: "18.12.19:", desc: "Add php7-imap and php7-pecl-apcu." }
